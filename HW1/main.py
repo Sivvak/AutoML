@@ -14,7 +14,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
-from skopt import BayesSearchCV
+from skopt import BayesSearchCV, space
 
 set_config(transform_output = "pandas")
 
@@ -23,8 +23,10 @@ hw1_path = os.path.join(os.path.expanduser("~"), f'Desktop\\AutoML\\HW1')
 run_random = '--random' in sys.argv
 run_bayes = '--bayes' in sys.argv
 
+sample_size = 10
+iterations_count = 50
 
-def run_train_iteration(dataset_id: int, target_column_name: str, model, params: dict):
+def run_train_iteration(dataset_id: int, target_column_name: str, model, random_search_params: dict, bayes_params: dict):
     ## load dataset
     dataset = openml.datasets.get_dataset(dataset_id)
     print(f'Training started for {type(model).__name__} on dataset {dataset.name}')
@@ -48,7 +50,7 @@ def run_train_iteration(dataset_id: int, target_column_name: str, model, params:
 
     if run_random:
         ## tune hyperparams using grid search
-        grid_search = GridSearchCV(model_pipeline, params, cv=5, scoring='accuracy', n_jobs=-1, verbose=2)
+        grid_search = GridSearchCV(model_pipeline, random_search_params, cv=5, scoring='accuracy', n_jobs=-1, verbose=2)
         grid_search.fit(X, y)
 
         ## save results to csv
@@ -59,7 +61,7 @@ def run_train_iteration(dataset_id: int, target_column_name: str, model, params:
 
     if run_bayes:
         ## tune hyperparams using bayesian optimization
-        bayes_search = BayesSearchCV(model_pipeline, params, cv=5, scoring='accuracy', n_jobs=-1, verbose=2)
+        bayes_search = BayesSearchCV(model_pipeline, bayes_params, n_iter=iterations_count, cv=5, scoring='accuracy', n_jobs=-1, verbose=2)
         bayes_search.fit(X, y)
 
         ## save results to csv
@@ -79,9 +81,8 @@ if __name__ == '__main__':
         (334, 'class')
     ]
 
-    sample_size = 3
-    svc_C = [2 ** x for x in uniform(loc=-10, scale=20).rvs(sample_size)]
-    svc_gamma = [2 ** x for x in uniform(loc=-10, scale=20).rvs(sample_size)]
+    svc_C = [10 ** x for x in uniform(loc=-10, scale=13).rvs(sample_size)]
+    svc_gamma = [10 ** x for x in uniform(loc=-10, scale=13).rvs(sample_size)]
 
     algorithms = [
         (
@@ -90,7 +91,13 @@ if __name__ == '__main__':
                 'model__ccp_alpha': uniform().rvs(sample_size),
                 'model__max_depth': randint(1, 31).rvs(sample_size),
                 'model__min_samples_leaf': randint(1, 61).rvs(sample_size),
-                'model__min_samples_split': randint(1, 61).rvs(sample_size)
+                'model__min_samples_split': randint(2, 61).rvs(sample_size)
+            },
+            {
+                'model__ccp_alpha': space.Real(0, 1, prior='uniform'),
+                'model__max_depth': space.Integer(1, 30),
+                'model__min_samples_leaf': space.Integer(1, 60),
+                'model__min_samples_split': space.Integer(2, 60)
             }
         ),
         (
@@ -116,22 +123,50 @@ if __name__ == '__main__':
                     'model__gamma': svc_gamma,
                     'model__degree': randint(2, 6).rvs(sample_size)
                 }
+            ],
+            [
+                {
+                    'model__kernel': ['linear'],
+                    'model__C': space.Real(1e-10, 1e3, prior='log-uniform')
+                },
+                {
+                    'model__kernel': ['rbf'],
+                    'model__C': space.Real(1e-10, 1e3, prior='log-uniform'),
+                    'model__gamma': space.Real(1e-10, 1e3, prior='log-uniform')
+                },
+                {
+                    'model__kernel': ['sigmoid'],
+                    'model__C': space.Real(1e-10, 1e3, prior='log-uniform'),
+                    'model__gamma': space.Real(1e-10, 1e3, prior='log-uniform')
+                },
+                {
+                    'model__kernel': ['poly'],
+                    'model__C': space.Real(1e-10, 1e3, prior='log-uniform'),
+                    'model__gamma': space.Real(1e-10, 1e3, prior='log-uniform'),
+                    'model__degree': space.Integer(2, 5)
+                }
             ]
         ),
         (
             GradientBoostingClassifier(),
             {
-                'model__learning_rate': [2 ** x for x in uniform(loc=-10, scale=10).rvs(sample_size)],
+                'model__learning_rate': [10 ** x for x in uniform(loc=-10, scale=10).rvs(sample_size)],
                 'model__n_estimators': randint(1, 5001).rvs(sample_size),
                 'model__subsample': uniform(loc=0.1, scale=0.9).rvs(sample_size),
-                'model__max_depth': randint(1, 31).rvs(sample_size),
+                'model__max_depth': randint(1, 16).rvs(sample_size),
+            },
+            {
+                'model__learning_rate': space.Real(1e-10, 1, prior='log-uniform'),
+                'model__n_estimators': space.Integer(1, 5000),
+                'model__subsample': space.Real(0.1, 1, prior='uniform'),
+                'model__max_depth': space.Integer(1, 15)
             }
         )
     ]
 
     ## tune hyperparameters
     for dataset_id, target_column_name in datasets:
-        for model, params in algorithms:
-            run_train_iteration(dataset_id, target_column_name, model, params)
+        for model, random_search_params, bayes_params in algorithms:
+            run_train_iteration(dataset_id, target_column_name, model, random_search_params, bayes_params)
 
     print('Success')

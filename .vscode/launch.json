@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["--random", /*"--bayes"*/],
+            "args": ["--random", "--bayes"],
             "console": "integratedTerminal",
             "justMyCode": true
         }
