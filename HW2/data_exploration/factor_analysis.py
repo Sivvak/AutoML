@@ -5,7 +5,7 @@ from factor_analyzer import FactorAnalyzer
 import matplotlib.pyplot as plt
 from sklearn.discriminant_analysis import StandardScaler
 from sklearn.model_selection import train_test_split
-from load_data import load_train_data
+from HW1.repo.AutoML.HW2.data_exploration.load_data import load_train_data
 from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity, calculate_kmo
 
 X, y = load_train_data()

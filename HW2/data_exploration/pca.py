@@ -2,7 +2,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import numpy as np
 import matplotlib.pyplot as plt
-from load_data import load_train_data
+from HW1.repo.AutoML.HW2.data_exploration.load_data import load_train_data
 
 X, y = load_train_data()
 
