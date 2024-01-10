@@ -1,11 +1,8 @@
-import io
-import os
 import numpy as np
 import pandas as pd
-from common import main_path
+from common import load_train_data
 from datetime import datetime
 from scipy.stats import uniform, randint
-from sklearn.calibration import column_or_1d
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SequentialFeatureSelector as SFS
@@ -17,12 +14,7 @@ from sklearn.preprocessing import MinMaxScaler
 random_state = 42
 
 # load data and labels from files
-with open(os.path.join(main_path, 'data', 'artificial_train.data')) as table:
-    buffer = io.StringIO('\n'.join(line.strip() for line in table))
-    X = pd.read_table(buffer, header=None, sep=' ')
-
-y = pd.read_csv(os.path.join(main_path, 'data', 'artificial_train.labels'), header=None)
-y = column_or_1d(y, warn=False)
+X, y = load_train_data()
 
 # split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
