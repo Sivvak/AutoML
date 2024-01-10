@@ -3,7 +3,7 @@ from load_data import load_train_data
 
 def filter_cor(X, y, threshold=1e-3):
     cor = X.corrwith(y[0]).to_numpy()
-    return X.iloc[:, abs(cor) > threshold]
+    return abs(cor) > threshold
 
 if __name__ == '__main__':    
     X, y = load_train_data()

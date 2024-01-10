@@ -5,7 +5,7 @@ from load_data import load_train_data
 
 def filter_chi2(X, y, threshold=0.1):
     _, p = chi2(X, y)
-    return X.iloc[:, p < threshold]
+    return p < threshold
 
 if __name__ == '__main__':
     # Load data
