@@ -1,6 +1,6 @@
 import models
 from common import load_train_data
-from data_exploration.filter import filter_features
+# from data_exploration.filter import filter_features
 from models import bayes_tune_rf, rs_tune_rf
 from sklearn.calibration import column_or_1d
 from sklearn.feature_selection import SelectKBest, f_classif
@@ -27,7 +27,7 @@ y = column_or_1d(y, warn=False)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=random_state)
 
 # create and fit model
-model = models.rf_rfe(random_state)
+model = models.rf_top_secret_allegro(random_state)
 
 # tune hyperparams using random search
 model.fit(X_train, y_train)

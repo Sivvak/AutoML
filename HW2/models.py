@@ -6,7 +6,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 from skopt import BayesSearchCV, space
-
+from boruta import BorutaPy
 
 def rf(random_state=None):
     return Pipeline(
@@ -112,3 +112,16 @@ def bayes_tune_rf(model, X, y, random_state=None):
     bayes.fit(X, y)
 
     return bayes
+
+
+def rf_top_secret_allegro(random_state=None):
+    rf1 = RandomForestClassifier(random_state=random_state)
+    rf2 = RandomForestClassifier(random_state=random_state)
+
+    return Pipeline(
+        [
+            ('preprocessing', MinMaxScaler()),
+            ('boruta', BorutaPy(rf1, n_estimators='auto', verbose=2, random_state=random_state)),
+            ('model', rf2),
+        ]
+    )
