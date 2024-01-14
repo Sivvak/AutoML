@@ -1,40 +1,45 @@
+from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier, HistGradientBoostingClassifier, RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC
+
 import models
 from common import load_train_data
-# from data_exploration.filter import filter_features
-from models import bayes_tune_rf, rs_tune_rf
-from sklearn.calibration import column_or_1d
-from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
 
 random_state = 42
 
-# f_classif - Balanced accuracy 12: 0.85611960035263
-#             Balanced accuracy 13: 0.8681494269761975
-#             Balanced accuracy 14: 0.8530708198648251
-
-# chi2 - Balanced accuracy 12: 0.8575705260064649
-#        Balanced accuracy 13: 0.8620702321481046
-#        Balanced accuracy 14: 0.8651190126359095
-
 # load data and labels from files
 X, y = load_train_data()
-# X = X.iloc[:, filter_features(X, y, random_state)]
-y = column_or_1d(y, warn=False)
-# X = SelectKBest(f_classif, k=13).fit_transform(X, y)
 
 # split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=random_state)
 
-# create and fit model
-model = models.rf_top_secret_allegro(random_state)
+# preprocess data and select features
+preprocessing = models.scaler_boruta_preprocessing(random_state)
 
-# tune hyperparams using random search
+# create model
+# model = RandomForestClassifier(random_state=random_state, n_jobs=-1)
+# model = GradientBoostingClassifier(random_state=random_state)
+# model = SVC(random_state=random_state)
+# model = MLPClassifier(
+#         hidden_layer_sizes=(44,),
+#         random_state=random_state,
+#         solver='adam',
+#         max_iter=600)
+# model = HistGradientBoostingClassifier(random_state=random_state, scoring='balanced_accuracy')
+model = ExtraTreesClassifier(random_state=random_state, n_jobs=-1)
+
+# tune hyperparams using random search  
+model = models.bayes_tune_et(model, random_state)
+
+# create and fit final pipeline
+model = make_pipeline(*preprocessing, model)
 model.fit(X_train, y_train)
-# model = bayes_tune_rf(model, X_train, y_train, random_state)
 
-# evaluate model AUC
+# evaluate model on test data
 y_pred = model.predict(X_test)
 print(f'Balanced accuracy: {balanced_accuracy_score(y_test, y_pred)}')
-print(f'Features selected count: {model.named_steps["rfe"].n_features_}')
-# print(f'Best params: {model.best_params_}')
+print(f"Best params: {model.named_steps['bayessearchcv'].best_params_}")
+print(f"Best score: {model.named_steps['bayessearchcv'].best_score_}")
