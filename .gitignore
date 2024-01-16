@@ -1,1 +1,3 @@
 *.pyc
+/HW2/output
+/AutogluonModels

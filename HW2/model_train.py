@@ -1,16 +1,17 @@
-import os
-import numpy as np
 import models
-from common import load_test_data, load_train_data, main_path
-from datetime import datetime
+from common import load_train_data
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.metrics import balanced_accuracy_score
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 
 random_state = 42
 
 # load data and labels from files
-X_train, y_train = load_train_data()
-X_test = load_test_data()
+X, y = load_train_data()
+
+# split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=random_state)
 
 # preprocess data and select features
 preprocessing = models.scaler_boruta_preprocessing(random_state)
@@ -25,9 +26,8 @@ model = models.bayes_tune_et(model, random_state)
 model = make_pipeline(*preprocessing, model)
 model.fit(X_train, y_train)
 
-# save predict probabilities with default formatter
-y_pred_proba = model.predict_proba(X_test)[:, 1]
-np.savetxt(os.path.join(main_path, 'output', f'313450_313472_artifical_model_prediction_{datetime.now().strftime("%H_%M_%S")}.txt'), y_pred_proba, header='313450_313472', comments='', fmt='%s')
-
+# evaluate model on test data
+y_pred = model.predict(X_test)
+print(f'Balanced accuracy: {balanced_accuracy_score(y_test, y_pred)}')
 print(f"Best params: {model.named_steps['bayessearchcv'].best_params_}")
 print(f"Best score: {model.named_steps['bayessearchcv'].best_score_}")

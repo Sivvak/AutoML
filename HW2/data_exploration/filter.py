@@ -11,9 +11,3 @@ def filter_features(X, y, random_state=None):
     ig_mask = filter_ig(X, y, random_state)
     chi2_mask = filter_chi2(X, y)
     return [cor and ig and chi for cor, ig, chi in zip(cor_mask, ig_mask, chi2_mask)]
-
-if __name__ == '__main__':
-    from load_data import load_train_data
-    X, y = load_train_data()
-    X = X.iloc[:, filter_features(X, y)]
-    print(X.shape)

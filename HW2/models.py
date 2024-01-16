@@ -55,48 +55,6 @@ def rf_sfs(random_state=None):
     )
 
 
-def rf_rfe(random_state=None):
-    rf1 = RandomForestClassifier(random_state=random_state)
-    rf2 = RandomForestClassifier(random_state=random_state)
-
-    return Pipeline(
-        [
-            ('preprocessing', StandardScaler()),
-            ('rfe', RFECV(rf1, min_features_to_select=10, cv=5, scoring='balanced_accuracy', n_jobs=-1)),
-            ('model', rf2),
-        ]
-    )
-
-
-def rf_tuned(random_state=None):
-    return Pipeline(
-        [
-            ('preprocessing', StandardScaler()),
-            ('model', RandomForestClassifier(
-                random_state=random_state,
-                max_features=0.6280760490974634,
-                max_samples=0.9687297765377242,
-                n_estimators=188
-            )),
-        ]
-    )
-
-
-def rf_pca_tuned(random_state=None):
-    return Pipeline(
-        [
-            ('preprocessing', StandardScaler()),
-            ('pca', PCA(n_components='mle', random_state=random_state)),
-            ('model', RandomForestClassifier(
-                random_state=random_state,
-                max_features=0.6069480147787453,
-                max_samples=0.7259644777835147,
-                n_estimators=485
-            )),
-        ]
-    )
-
-
 def rs_tune_rf(model, random_state=None):
     rs_params = {
         'n_estimators': randint(60, 2001),
